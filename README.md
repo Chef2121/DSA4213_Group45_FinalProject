@@ -11,7 +11,7 @@ A web application for analyzing political bias in news articles using fine-tuned
 - **AI Perspectives**: Generate alternative viewpoints using Google Gemini AI (optional)
 - **Related Articles**: Find and analyze related articles on the same topic
 - **Interactive Visualizations**: Spectrum visualization and probability distributions
-- **Shapely Feature Importance Highlighting (Currently disabled as requires high computational power to analyze)
+- Shapely Feature Importance Highlighting (Currently disabled as requires high computational power to analyze)
 
 ## Installation
 
