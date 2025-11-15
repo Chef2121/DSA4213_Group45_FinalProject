@@ -11,6 +11,7 @@ A web application for analyzing political bias in news articles using fine-tuned
 - **AI Perspectives**: Generate alternative viewpoints using Google Gemini AI (optional)
 - **Related Articles**: Find and analyze related articles on the same topic
 - **Interactive Visualizations**: Spectrum visualization and probability distributions
+- **Shapely Feature Importance Highlighting (Currently disabled as requires high computational power to analyze)
 
 ## Installation
 
@@ -138,3 +139,11 @@ Requirements:
 
 Requirements:
 - NEWSAPI_KEY must be set in .env file
+- 
+**Enable Word Importance Analysis**
+- Toggle SHAP-based word highlighting to see which words influenced the prediction
+- Shows highlighted text with important words marked
+- Displays top 10 most influential words per bias category
+- Much Slower processing (~30-60 seconds) due to SHAP computation
+- Disabled by default for faster performance
+- Only available for short model (DeBERTa) - not supported for Longformer
