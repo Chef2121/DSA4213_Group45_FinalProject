@@ -6,6 +6,7 @@ A web application for analyzing political bias in news articles using fine-tuned
 
 - **Dual Model System**: Automatically switches between DeBERTa (short articles ≤512 tokens) and Longformer (long articles up to 4096 tokens)
 - **3-Label Classification**: Classifies articles as Left, Centre, or Right
+- **5-Label Classification**: Classifies articles as Left, Left Leaning, Centre, Right Leaning, or Right
 - **URL Extraction**: Automatically extract article content from URLs
 - **AI Perspectives**: Generate alternative viewpoints using Google Gemini AI (optional)
 - **Related Articles**: Find and analyze related articles on the same topic
