@@ -146,6 +146,10 @@ Requirements:
 - NEWSAPI_KEY must be set in .env file
 - 
 **Enable Word Importance Analysis**
+```
+# set get_attributions to True to enable, line 150 in model_loader.py
+def predict(self, text: str, max_length: int = 512, get_attributions: bool = False) -> Dict[str, any]:
+```
 - Toggle SHAP-based word highlighting to see which words influenced the prediction
 - Shows highlighted text with important words marked
 - Displays top 10 most influential words per bias category
