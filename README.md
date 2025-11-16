@@ -62,9 +62,10 @@ Note: The app will work without these keys, but some features will be disabled.
 
 Ensure the following model directories exist:
 Either download the models pre-fine-tuned by us or rerun the fine-tuning notebooks to get them
+
+Run in terminal to download model after creating venv
 ```
-hf download chef2121/deberta-v2-political-stance-lora --local-dir models/deberta_model
-hf download onioncult/article-longformer-finetuned --local-dir models/longformer-finetuned-model
+.\download_models.ps1
 ```
 
 ```
