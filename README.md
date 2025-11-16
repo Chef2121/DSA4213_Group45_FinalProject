@@ -61,7 +61,12 @@ Note: The app will work without these keys, but some features will be disabled.
 ### Step 4: Verify Model Files
 
 Ensure the following model directories exist:
-Either download the models pre-fine-tuned by us or run the fine-tuning notebooks to get them
+Either download the models pre-fine-tuned by us or rerun the fine-tuning notebooks to get them
+```
+hf download chef2121/deberta-v2-political-stance-lora --local-dir models/deberta_model
+hf download onioncult/article-longformer-finetuned --local-dir models/longformer-finetuned-model
+```
+
 ```
 models/
 ├── deberta_model/          # DeBERTa with LoRA adapters
