@@ -147,7 +147,7 @@ class BiasClassifier:
             "Right": right_prob
         }
     
-    def predict(self, text: str, max_length: int = 512, get_attributions: bool = True) -> Dict[str, any]:
+    def predict(self, text: str, max_length: int = 512, get_attributions: bool = False) -> Dict[str, any]:
         """
         Predict the bias classification for the given text.
         Automatically uses short model (DeBERTa) for ≤512 tokens, Longformer for longer texts.
@@ -155,7 +155,7 @@ class BiasClassifier:
         Args:
             text: Input article text
             max_length: Maximum token length for the short model (512 for DeBERTa)
-            get_attributions: Whether to compute SHAP word importance (slower, only for short model)
+            get_attributions: Whether to compute SHAP word importance (slower, only for short model) - DISABLED by default
             
         Returns:
             Dictionary containing:
@@ -195,14 +195,14 @@ class BiasClassifier:
         except Exception as e:
             raise RuntimeError(f"Prediction failed: {str(e)}")
     
-    def _predict_short(self, text: str, max_length: int, get_attributions: bool = True) -> Dict[str, any]:
+    def _predict_short(self, text: str, max_length: int, get_attributions: bool = False) -> Dict[str, any]:
         """
         Predict using the short model (DeBERTa/ModernBERT).
         
         Args:
             text: Input text
             max_length: Maximum token length
-            get_attributions: Whether to compute word importance scores
+            get_attributions: Whether to compute word importance scores - DISABLED by default
             
         Returns:
             Prediction dictionary
@@ -348,9 +348,8 @@ class BiasClassifier:
             import shap
             import numpy as np
             
-            # Get predictions first to filter by probability
             with torch.no_grad():
-                outputs = self.model(**inputs)
+                outputs = self.short_model(**inputs)
                 logits = outputs.logits
                 probs = torch.softmax(logits[0], dim=0)
                 probs_numpy = probs.cpu().numpy()
@@ -359,7 +358,6 @@ class BiasClassifier:
             PROB_THRESHOLD = 0.05
             attributions = {}
             
-            # Create a prediction function for SHAP
             def predict_proba(texts):
                 """Predict probabilities for a list of texts."""
                 if isinstance(texts, str):
@@ -367,7 +365,6 @@ class BiasClassifier:
                 
                 results = []
                 for text_item in texts:
-                    # Tokenize
                     encoded = self.short_tokenizer(
                         text_item,
                         max_length=max_length,
@@ -376,7 +373,6 @@ class BiasClassifier:
                         return_tensors='pt'
                     ).to(self.device)
                     
-                    # Predict
                     with torch.no_grad():
                         outputs = self.short_model(**encoded)
                         logits = outputs.logits
@@ -461,20 +457,23 @@ class BiasClassifier:
             
             # Get the base model (handles both PEFT and standard models)
             if hasattr(self.short_model, 'base_model'):
-                # PEFT model - need to go through base_model.model
                 base_model = self.short_model.base_model.model
             else:
-                # Standard model
                 base_model = self.short_model
             
+            # DeBERTa uses 'deberta.embeddings.word_embeddings'
             # ModernBERT uses 'model.embeddings.tok_embeddings'
             # BERT uses 'bert.embeddings.word_embeddings'
-            if hasattr(base_model, 'model'):
+            if hasattr(base_model, 'deberta'):
+                # DeBERTa structure
+                embeddings = base_model.deberta.embeddings.word_embeddings
+                encoder = base_model.deberta
+            elif hasattr(base_model, 'model'):
                 # ModernBERT structure
                 embeddings = base_model.model.embeddings.tok_embeddings
                 encoder = base_model.model
             elif hasattr(base_model, 'bert'):
-                # BERT structure (fallback)
+                # BERT structure
                 embeddings = base_model.bert.embeddings.word_embeddings
                 encoder = base_model.bert
             else:
@@ -498,14 +497,18 @@ class BiasClassifier:
             sequence_output = outputs.last_hidden_state if hasattr(outputs, 'last_hidden_state') else outputs[0]
             
             # Get logits through the full forward pass
-            if hasattr(base_model, 'head'):
+            if hasattr(base_model, 'pooler') and hasattr(base_model, 'classifier'):
+                # DeBERTa/BERT: pooler -> classifier
+                pooled_output = base_model.pooler(sequence_output)
+                logits = base_model.classifier(pooled_output)
+            elif hasattr(base_model, 'head'):
                 # ModernBERT: head -> drop -> classifier
                 head_output = base_model.head(sequence_output[:, 0])
                 dropped = base_model.drop(head_output)
                 logits = base_model.classifier(dropped)
             else:
-                # BERT: pooler -> classifier
-                pooled_output = outputs[1] if len(outputs) > 1 else sequence_output[:, 0]
+                # Fallback: use CLS token directly
+                pooled_output = sequence_output[:, 0]
                 logits = base_model.classifier(pooled_output)
             
             # Get probabilities
