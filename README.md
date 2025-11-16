@@ -6,10 +6,12 @@ A web application for analyzing political bias in news articles using fine-tuned
 
 - **Dual Model System**: Automatically switches between DeBERTa (short articles ≤512 tokens) and Longformer (long articles up to 4096 tokens)
 - **3-Label Classification**: Classifies articles as Left, Centre, or Right
+- **5-Label Classification**: Classifies articles as Left, Left Leaning, Centre, Right Leaning, or Right
 - **URL Extraction**: Automatically extract article content from URLs
 - **AI Perspectives**: Generate alternative viewpoints using Google Gemini AI (optional)
 - **Related Articles**: Find and analyze related articles on the same topic
 - **Interactive Visualizations**: Spectrum visualization and probability distributions
+- Shapley (SHAP) Feature Importance Highlighting (Currently disabled as requires high computational power to analyze)
 
 ## Installation
 
@@ -59,7 +61,12 @@ Note: The app will work without these keys, but some features will be disabled.
 ### Step 4: Verify Model Files
 
 Ensure the following model directories exist:
-Either download the models pre-fine-tuned by us or run the fine-tuning notebooks to get them
+Either download the models pre-fine-tuned by us or rerun the fine-tuning notebooks to get them
+```
+hf download chef2121/deberta-v2-political-stance-lora --local-dir models/deberta_model
+hf download onioncult/article-longformer-finetuned --local-dir models/longformer-finetuned-model
+```
+
 ```
 models/
 ├── deberta_model/          # DeBERTa with LoRA adapters
@@ -137,3 +144,11 @@ Requirements:
 
 Requirements:
 - NEWSAPI_KEY must be set in .env file
+- 
+**Enable Word Importance Analysis**
+- Toggle SHAP-based word highlighting to see which words influenced the prediction
+- Shows highlighted text with important words marked
+- Displays top 10 most influential words per bias category
+- Much Slower processing (~30-60 seconds) due to SHAP computation
+- Disabled by default for faster performance
+- Only available for short model (DeBERTa) - not supported for Longformer
